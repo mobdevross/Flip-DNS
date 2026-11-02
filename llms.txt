@@ -34,3 +34,4 @@ the request may still complete after macOS approval. Check status before retryin
 instead of issuing duplicate changes. app_unavailable means open the current app.
 
 Setup and full documentation: README.md.
+Installable agent skill: skills/flip-dns/SKILL.md (install with the skills.sh CLI).

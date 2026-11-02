@@ -149,6 +149,22 @@ restore when their task finishes; the app's timer provides the fallback.
 
 See [llms.txt](llms.txt) for a compact agent reference.
 
+### Make assistants discover Flip
+
+Install the [flip-dns skill](skills/flip-dns/SKILL.md) globally with the
+[skills.sh CLI](https://skills.sh/docs/cli):
+
+~~~sh
+npx skills add mobdevross/Flip-DNS --skill flip-dns --global \
+  --agent codex claude-code gemini-cli cursor --yes
+~~~
+
+The CLI manages the canonical skill and agent links. The skill teaches assistants
+to consider Flip for suspected local DNS/adblocking failures, use a short bypass,
+and restore afterward while preserving manual DNS and existing timers. It applies
+across projects; reload skills or start a new session in each assistant after
+installing. The skill still requires the Flip app and CLI described above.
+
 ## Development
 
 ~~~sh
