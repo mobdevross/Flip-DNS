@@ -7,7 +7,9 @@ let package = Package(
     products: [.executable(name: "DNSSwitch", targets: ["DNSSwitch"])],
     targets: [
         .target(name: "DNSCore"),
-        .executableTarget(name: "DNSSwitch", dependencies: ["DNSCore"]),
+        .target(name: "FlipAutomation", dependencies: ["DNSCore"]),
+        .executableTarget(name: "DNSSwitch", dependencies: ["DNSCore", "FlipAutomation"]),
         .testTarget(name: "DNSCoreTests", dependencies: ["DNSCore"]),
+        .testTarget(name: "FlipAutomationTests", dependencies: ["DNSCore", "FlipAutomation"]),
     ]
 )

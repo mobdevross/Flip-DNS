@@ -1,120 +1,174 @@
-# Flip
+<p align="center">
+  <img src="docs/assets/flip-banner.svg" alt="Flip — Your DNS. One quick flip." width="100%" />
+</p>
 
-A native macOS menu bar app for switching between your network's DNS (including
-your home adblocker) and Cloudflare public DNS. Requires macOS 13 or later and
-Xcode or the Swift command line tools to build. No third-party dependencies.
+<p align="center">
+  <strong>A tiny macOS menu bar app that puts DNS switching one click away.</strong><br />
+  Your network's DNS when you want it. Public DNS when you need it.
+</p>
 
-## Build and run
+<p align="center">
+  <a href="#get-started">Get started</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#for-coding-assistants">For coding assistants</a> ·
+  <a href="#development">Development</a>
+</p>
 
-```sh
+## A little switch for an everyday annoyance
+
+Network-wide DNS adblocking is great—until it blocks the one thing you need.
+Flip lets your Mac temporarily use public DNS, then return to the DNS supplied
+by your network. No digging through System Settings or changing the router for
+everyone else.
+
+- **Automatic ↔ Public DNS.** Switch between your network's resolvers and Cloudflare.
+- **Set it and come back.** Bypass for 5, 15, or 60 minutes, with a visible countdown.
+- **A quiet menu bar.** One icon, small state badges, and no Dock icon.
+- **Wi-Fi and Ethernet together.** Keep your enabled connections in step.
+- **Stays in sync.** Detects external changes and checks again when the menu opens.
+- **Assistant-friendly.** A local CLI with JSON results and bounded bypasses.
+- **Native and small.** Swift, AppKit, and Apple frameworks. No third-party dependencies.
+
+## Get started
+
+Requires **macOS 13 or later** and **Swift 5.9 or later** through Xcode or the
+Swift command line tools. Build the app locally:
+
+~~~sh
+git clone https://github.com/mobdevross/Flip-DNS.git
+cd Flip-DNS
 bash scripts/build-app.sh
-open 'dist/Flip.app'
-```
+open dist/Flip.app
+~~~
 
-The menu bar shows only a network icon: plain for Automatic, with an arrow badge
-for manual DNS, or a clock badge for a timed bypass. An exclamation mark indicates
-an error or pending restoration; a question mark means the DNS state is
-unavailable. Hover or open the menu for the current mode and timer. The app has no
-Dock icon. Launching it does not change DNS.
+For everyday use, move `dist/Flip.app` to **Applications**, open that copy, and
+enable **Launch at Login** from the menu if desired. Keep it at a stable location.
+Quit the running app before opening an updated build.
 
-For everyday use, move `dist/Flip.app` to Applications, then open that copy.
-Enable **Launch at Login** from its menu if desired. Keep the app at a stable
-location after enabling that option. The build script signs the app for local
-use; it does not require a developer certificate. This build is not notarized for
-distribution to other Macs.
+The build script signs the app for local use without a developer certificate.
+It does not produce a notarized download for distribution to other Macs.
 
-Quit the app before rebuilding a copy you are currently running.
+## How it works
 
-If upgrading from DNS Switch, quit that app before opening Flip. The existing
-app identifier and saved timers are retained. The previous build is left in place.
+| Menu choice | What happens |
+| --- | --- |
+| **Automatic** | Clears manual DNS server addresses so the network can supply them. |
+| **Public DNS** | Sets Cloudflare's standard unfiltered DNS until you switch back. |
+| **Public DNS for…** | Starts a 5-, 15-, or 60-minute bypass, then attempts to restore Automatic. |
 
-## Switch DNS
+<details>
+<summary>Public DNS addresses</summary>
 
-- **Automatic** removes manually configured DNS server addresses so each network
-  service can use DNS supplied by the network.
-- **Public DNS** uses Cloudflare's standard unfiltered resolvers:
-  `1.1.1.1`, `1.0.0.1`, `2606:4700:4700::1111`, and `2606:4700:4700::1001`.
-- **Public DNS for…** offers 5, 15, or 60 minutes, then attempts to restore
-  Automatic.
+~~~text
+1.1.1.1
+1.0.0.1
+2606:4700:4700::1111
+2606:4700:4700::1001
+~~~
 
-macOS can ask for administrator approval when DNS changes. There is no installed
-root helper and the app never stores your administrator password. Re-selecting
-a mode already applied to all eligible services does not request approval.
+</details>
 
-Changes apply together to enabled Wi-Fi and Ethernet services in the current
-macOS network location, including disconnected adapters. USB tethering services
-that macOS identifies as Ethernet are included. Disabled, VPN, PPP, and bridge
-services are left unchanged. DNS search domains and other network settings are
-preserved. The app observes changes and checks DNS whenever the menu opens, so
-there is no manual Refresh command.
+The icon stays plain in Automatic mode. An **arrow** indicates manual DNS, a
+**clock** indicates a timed bypass, and an **exclamation mark** indicates an
+error or pending restoration. Hover or open the menu for the current mode.
 
-The menu reports configured service DNS, rather than claiming adblocking is on
-or off. Browser secure DNS, VPN resolvers, and router DNS interception can take
-precedence. Some applications retain cached results; reload or restart the
-affected application if a previous DNS answer persists.
+Changes apply to enabled Wi-Fi and Ethernet services in the current macOS
+network location, including disconnected adapters and USB tethering services
+identified as Ethernet. Disabled, VPN, PPP, and bridge services are left alone.
+Search domains and other network settings are preserved.
 
-## Timed bypasses
+### Timers and permissions
 
-Keep Flip running for automatic restoration. The deadline persists across
-sleep and app relaunch; an overdue timer is checked when the app resumes. A Mac
-that is asleep restores after waking, not while it is asleep.
+Keep Flip running for timed restoration. Deadlines survive sleep and app relaunch;
+an overdue timer is checked when the app resumes. A sleeping Mac restores after
+waking.
 
-At expiry, macOS may need administrator approval again. If approval is cancelled
-or restoration fails, the icon shows an exclamation badge and the menu shows **Restore
-pending**. Choose **Restore Automatic Now…** to retry. The app does not repeatedly
-show permission prompts. Public DNS may stay enabled until restoration succeeds.
+**macOS may request administrator approval**, including when a timer expires.
+If you decline or restoration fails, Flip shows **Restore pending**. Choose
+**Restore Automatic Now…** to retry; public DNS can remain enabled until it succeeds.
+There is no privileged background helper, and Flip never stores your password.
 
-Restoration affects only the original bypass services whose DNS addresses still
-match the public preset. DNS changes made elsewhere are preserved. A successful
-manual selection replaces or cancels the timer; a failed selection keeps the
-previous timer. Quitting during a timed bypass offers to restore first, keep the
-current settings and cancel the timer, or leave the app running.
+Restoration only clears addresses still matching the original bypass. DNS edits
+made elsewhere are preserved. Quitting with a timer active offers to restore
+first, keep the current settings and cancel the timer, or stay running.
 
-If a network update fails after saving, the app attempts to restore the complete
-previous DNS configuration. An unsuccessful recovery is reported in the menu;
-check **System Settings → Network → your connection → Details → DNS** if needed.
+Flip reports your Mac's configured DNS, rather than promising that adblocking is
+on or off. Browser secure DNS, VPN resolvers, router interception, and application
+caches can affect the result.
 
-## Verify
+## For coding assistants
 
-```sh
-bash scripts/test.sh
-'dist/Flip.app/Contents/MacOS/DNSSwitch' --diagnose
-```
+Give a coding agent a temporary DNS bypass without making it manage the timer.
+Flip owns the same bypass whether it starts in the menu or the CLI.
 
-Tests use isolated in-memory network services and clocks; they do not change the
-Mac's DNS. `--diagnose` prints the current network location's configured services
-as JSON and never requests administrator access or changes settings. An execution
-sandbox that blocks SystemConfiguration may prevent this diagnostic from reading
-the network; run it in Terminal in that case.
+Keep the app open and install the optional `flip` command:
 
-For a manual integration check on the home network:
+~~~sh
+bash scripts/install-cli.sh
+# Ensure ~/.local/bin is on your PATH, then:
+flip status
+flip bypass --minutes 15
+flip restore
+~~~
 
-1. Open the app and compare the current mode with System Settings. The menu bar
-   should show a plain icon for Automatic, with no text label.
-2. Select **Public DNS**, approve the macOS prompt, and verify the DNS addresses
-   in System Settings and with `scutil --dns`. Test a fresh lookup and a website
-   normally blocked by the home DNS. The icon should gain an arrow badge.
-3. Select **Automatic** and verify that the explicit server addresses are gone
-   and network-provided DNS is used again. The icon should return to plain, and
-   search domains should be unchanged. Changes made in System Settings should
-   update the icon automatically or when opening the menu.
-4. Start a 5-minute bypass and leave the app open. Check the expiry prompt and
-   restoration; the icon should show a clock while the timer runs. Repeat while
-   declining approval, then retry from **Restore
-   Automatic Now…**.
-5. Start another bypass, sleep past its deadline, and wake the Mac. Also test
-   making a different DNS edit in System Settings before expiry; that edit should
-   survive the timer. Check the three choices when quitting with a timer active.
+The installer prefers `/Applications/Flip.app`, then `~/Applications/Flip.app`,
+then the local build. Pass an app path and optional bin directory to choose:
+
+~~~sh
+bash scripts/install-cli.sh /Applications/Flip.app "$HOME/.local/bin"
+~~~
+
+Commands return JSON and exit **0 on success**, **1 on error**. `bypass` accepts
+5, 15, or 60 minutes, defaulting to 15; it cannot enable public DNS indefinitely.
+`restore` ends the active Flip bypass and preserves unrelated DNS edits. With no
+active bypass it leaves DNS unchanged. `status` is read-only.
+
+~~~json
+{
+  "ok": true,
+  "requestID": "12345678-1234-1234-1234-123456789abc",
+  "status": {
+    "busy": false,
+    "expiresAt": "2026-11-02T12:15:00Z",
+    "mode": "public",
+    "remainingSeconds": 900,
+    "restorePending": false
+  },
+  "version": 1
+}
+~~~
+
+Control uses private local request/response files with checked ownership and
+permissions. There is no network port, API key, or MCP server to configure. Commands
+still use the app's normal macOS approval flow.
+
+If approval takes longer than the CLI's 90-second wait, a request can still
+complete after a timeout. **Check `flip status` before retrying a change.** If a
+command reports `busy`, wait for the current action to finish. Agents should
+restore when their task finishes; the app's timer provides the fallback.
+
+See [llms.txt](llms.txt) for a compact agent reference.
 
 ## Development
 
-`DNSCore` contains configuration classification, transactional updates, and the
-persistent timer model. `DNSSwitch` contains the AppKit menu and the
-SystemConfiguration/Authorization Services adapter. DNS work runs on a serial
-background queue so permission prompts do not block the menu's main thread.
+~~~sh
+bash scripts/test.sh
+'dist/Flip.app/Contents/MacOS/DNSSwitch' --diagnose
+~~~
 
-The build and test scripts keep compiler caches inside `.build/`. SwiftPM's
-manifest sandbox is disabled because this package has no dependencies or plugins
-and this supports running inside an existing restricted development environment.
-There are no runtime sandbox entitlements: changing system DNS uses macOS
-Authorization Services.
+Tests use in-memory DNS services, controllable clocks, and isolated control directories;
+they never change your Mac's DNS. `--diagnose` prints configured network services
+as JSON without requesting administrator access or changing settings.
+
+| Component | Responsibility |
+| --- | --- |
+| `DNSCore` | DNS modes, transactional changes, rollback, and persistent timers. |
+| `FlipAutomation` | CLI parsing, JSON protocol, and local control transport. |
+| `DNSSwitch` | AppKit menu, icons, authorization, and SystemConfiguration adapter. |
+
+Build products and compiler caches stay in `.build/` and `dist/`, outside Git.
+Builds preserve the previous app bundle under `dist/previous-builds/`. The scripts
+disable SwiftPM's manifest sandbox to work within restricted development sessions;
+the package has no dependencies or build plugins.
+
+See [manual testing](docs/TESTING.md) for real-network and administrator-prompt checks.

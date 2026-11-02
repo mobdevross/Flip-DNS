@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import DNSCore
+import FlipAutomation
 import ServiceManagement
 
 @MainActor
@@ -9,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusItem: NSStatusItem!
     private let menu = NSMenu()
     private var observer: NetworkObserver?
+    private var controlServer: ControlServer?
     private var tick: Timer?
     private var debounce: DispatchWorkItem?
     private var subscriptions: Set<AnyCancellable> = []
@@ -46,6 +48,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                                           name: NSWorkspace.didWakeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(becameActive),
                                                name: NSApplication.didBecomeActiveNotification, object: nil)
+        let controlService = ControlService(model: model)
+        do {
+            controlServer = try ControlServer { request, reply in
+                Task { @MainActor in reply(await controlService.handle(request)) }
+            }
+        } catch {
+            NSLog("Flip CLI control could not start: %@", error.localizedDescription)
+        }
         render()
         Task {
             await model.refresh()
@@ -227,7 +237,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [
             .applicationName: "Flip",
-            .applicationVersion: "1.1.0",
+            .applicationVersion: "1.2.0",
             .credits: NSAttributedString(string: "Switch Wi-Fi and Ethernet between network-provided DNS and Cloudflare public DNS.\n\nTimed restoration requires this app to be running and may need macOS administrator approval."),
         ])
     }
