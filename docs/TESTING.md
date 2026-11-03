@@ -5,6 +5,14 @@ controlled clocks, and temporary control directories. It never changes system DN
 
 ## Real-network checks
 
+Before network checks, launch a copy from outside Applications. Confirm Copy and
+Open starts `/Applications/Flip.app`, the source exits without resetting a saved
+bypass, and a source-linked CLI follows the installed copy. Not Now should
+continue from the source. Launching from `/Applications` or `~/Applications`
+should skip the prompt. Test replacement confirmation, existing-app activation,
+and a copy failure; an unsuccessful copy or relaunch should leave the source usable.
+CLI commands such as `flip status` and `flip --help` must not show install prompts.
+
 1. Build and open Flip. Compare its current mode with System Settings. Automatic
    should show the plain network icon, without text in the menu bar.
 2. Select Public DNS, approve the macOS prompt, and compare the configured

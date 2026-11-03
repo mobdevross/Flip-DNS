@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var debounce: DispatchWorkItem?
     private var subscriptions: Set<AnyCancellable> = []
     private var canTerminate = false
+    private var hasStarted = false
     private var timerMenuItem: NSMenuItem?
     private var renderedState: MenuState?
     private var renderedIcon: StatusIcon.Style?
@@ -31,6 +32,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        Task {
+            if await ApplicationLocationPrompt().continueFromCurrentLocation() {
+                startApplication()
+            } else {
+                // Preserve a persisted timed bypass for the installed copy.
+                // This instance has not started its timer or control server.
+                terminate()
+            }
+        }
+    }
+
+    private func startApplication() {
+        hasStarted = true
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button?.imagePosition = .imageOnly
         menu.delegate = self
@@ -237,7 +251,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [
             .applicationName: "Flip",
-            .applicationVersion: "1.2.0",
+            .applicationVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Development",
             .credits: NSAttributedString(string: "Switch Wi-Fi and Ethernet between network-provided DNS and Cloudflare public DNS.\n\nTimed restoration requires this app to be running and may need macOS administrator approval."),
         ])
     }
@@ -280,7 +294,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        if canTerminate { return .terminateNow }
+        if canTerminate || !hasStarted { return .terminateNow }
         // Avoid nested termination inside the delegate callback.
         DispatchQueue.main.async { [weak self] in self?.requestQuit() }
         return .terminateCancel

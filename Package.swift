@@ -11,5 +11,6 @@ let package = Package(
         .executableTarget(name: "DNSSwitch", dependencies: ["DNSCore", "FlipAutomation"]),
         .testTarget(name: "DNSCoreTests", dependencies: ["DNSCore"]),
         .testTarget(name: "FlipAutomationTests", dependencies: ["DNSCore", "FlipAutomation"]),
+        .testTarget(name: "DNSSwitchTests", dependencies: ["DNSSwitch"]),
     ]
 )

@@ -41,9 +41,15 @@ bash scripts/build-app.sh
 open dist/Flip.app
 ~~~
 
-For everyday use, move `dist/Flip.app` to **Applications**, open that copy, and
-enable **Launch at Login** from the menu if desired. Keep it at a stable location.
-Quit the running app before opening an updated build.
+When launched outside **Applications**, Flip offers to copy itself to
+`/Applications` and open the installed copy. Choose **Not Now** to keep using
+the current copy. Apps already in `/Applications` or `~/Applications` skip the
+prompt. Enable **Launch at Login** from the installed copy if desired.
+
+Replacing an installed Flip requires confirmation and keeps the previous app as
+a hidden backup in Applications. An already-running installed copy must be quit
+before replacement. The original source copy stays intact, and an existing
+`flip` CLI shortcut pointing to it is updated to follow the installed app.
 
 The build script signs the app for local use without a developer certificate.
 It does not produce a notarized download for distribution to other Macs.
