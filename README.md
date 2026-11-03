@@ -188,3 +188,7 @@ disable SwiftPM's manifest sandbox to work within restricted development session
 the package has no dependencies or build plugins.
 
 See [manual testing](docs/TESTING.md) for real-network and administrator-prompt checks.
+
+The app icon's vector source is `Resources/AppIcon.svg`. To regenerate the
+committed macOS icon, run `bash scripts/generate-app-icon.sh` with `rsvg-convert`
+(librsvg) installed. Normal app builds use the prebuilt icon and need no extra tools.
